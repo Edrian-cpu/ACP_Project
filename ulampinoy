@@ -1,0 +1,158 @@
+def display_ulam_pinoy(ulam_pinoy):
+    print("\n==================== Filipino Food Menu ====================")
+    print("\n--- Ulam Pinoy ---")
+    for dish, price in ulam_pinoy.items():
+        print(f"{dish}: ₱{price}")
+    print("=============================================================")
+
+def display_desserts(desserts):
+    print("\n--- Desserts ---")
+    for dessert, price in desserts.items():
+        print(f"{dessert}: ₱{price}")
+    print("=============================================================")
+
+def display_drinks(drinks):
+    print("\n--- Drinks ---")
+    for drink, price in drinks.items():
+        print(f"{drink}: ₱{price}")
+    print("=============================================================")
+
+def take_order(ulam_pinoy, desserts, drinks):
+    order = {'ulam_pinoy': [], 'desserts': [], 'drinks': []}
+    total_cost = 0
+
+   
+    while True:
+        food_item = input("\nEnter the name of the ulam pinoy you'd like to order (or type 'done' to finish): ").title()
+
+        if food_item.lower() == 'done':
+            break
+        
+        if food_item in ulam_pinoy:
+            quantity = int(input(f"How many {food_item} would you like to order? "))
+            total_cost += ulam_pinoy[food_item] * quantity
+            order['ulam_pinoy'].append((food_item, quantity, ulam_pinoy[food_item]))
+        else:
+            print("Sorry, we don't have that ulam pinoy on the menu. Please choose again.")
+    
+   
+    display_desserts(desserts)
+    
+    while True:
+        food_item = input("\nEnter the name of the dessert you'd like to order (or type 'done' to finish): ").title()
+
+        if food_item.lower() == 'done':
+            break
+        
+        if food_item in desserts:
+            quantity = int(input(f"How many {food_item} would you like to order? "))
+            total_cost += desserts[food_item] * quantity
+            order['desserts'].append((food_item, quantity, desserts[food_item]))
+        else:
+            print("Sorry, we don't have that dessert on the menu. Please choose again.")
+    
+   
+    display_drinks(drinks)
+
+    while True:
+        food_item = input("\nEnter the name of the drink you'd like to order (or type 'done' to finish): ").title()
+
+        if food_item.lower() == 'done':
+            break
+        
+        if food_item in drinks:
+            quantity = int(input(f"How many {food_item} would you like to order? "))
+            total_cost += drinks[food_item] * quantity
+            order['drinks'].append((food_item, quantity, drinks[food_item]))
+        else:
+            print("Sorry, we don't have that drink on the menu. Please choose again.")
+    
+    return order, total_cost
+
+def print_receipt(order, total_cost):
+    print("\n==================== Order Receipt ====================")
+    
+    if order['ulam_pinoy']:
+        print("\n--- Ulam Pinoy ---")
+        for item, quantity, price in order['ulam_pinoy']:
+            print(f"{item} x{quantity} = ₱{price * quantity}")
+    
+    if order['desserts']:
+        print("\n--- Desserts ---")
+        for item, quantity, price in order['desserts']:
+            print(f"{item} x{quantity} = ₱{price * quantity}")
+    
+    if order['drinks']:
+        print("\n--- Drinks ---")
+        for item, quantity, price in order['drinks']:
+            print(f"{item} x{quantity} = ₱{price * quantity}")
+    
+    print("------------------------------------------------------")
+    print(f"Total Amount: ₱{total_cost}")
+    print("=======================================================")
+
+def main():
+    ulam_pinoy = {
+        "Adobo": 150,
+        "Sinigang na Baboy": 180,
+        "Lechon Kawali": 220,
+        "Pancit Canton": 100,
+        "Lumpiang Shanghai": 120,
+        "Kare-Kare": 250,
+        "Bicol Express": 190,
+        "Laing": 140
+    }
+
+    desserts = {
+        "Leche Flan": 60,
+        "Bibingka": 70,
+        "Turon": 50,
+        "Mango and Cream Cheese Turon": 80,
+        "Halayang Ube": 90,
+        "Pichi-Pichi": 60,
+        "Cassava Cake with Custard Topping": 100,
+        "Kalamay Gabi": 70,
+        "Halo-Halo": 150
+    }
+
+    drinks = {
+        "Sago't Gulaman": 40,
+        "Coconut Juice": 30,
+        "Calamansi Juice": 40,
+        "Melon Juice": 50,
+        "Buko Pandan": 50,
+        "Buko Shake": 60,
+        "Mango Shake": 70
+    }
+
+    print("=============================================================")
+    print("         Welcome to the Filipino Restaurant!                ")
+    print("        Experience the best of Filipino cuisine!            ")
+    print("=============================================================")
+
+    order = {}
+    total_cost = 0
+    more_items = True
+
+    while more_items:
+        display_ulam_pinoy(ulam_pinoy)  
+        new_order, new_cost = take_order(ulam_pinoy, desserts, drinks)
+
+
+        for category in new_order:
+            if category not in order:
+                order[category] = []
+            order[category].extend(new_order[category])
+        
+        total_cost += new_cost
+
+      
+        more_items_input = input("\nWould you like to add more items to your order? (yes/no): ").lower()
+        if more_items_input != 'yes':
+            more_items = False
+
+   
+    print_receipt(order, total_cost)
+
+if __name__ == "__main__":
+    main()
