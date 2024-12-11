@@ -1,127 +1,105 @@
-def display_ulam_pinoy(ulam_pinoy):
-    print("\n==================== Filipino Food Menu ====================")
-    print("\n--- Ulam Pinoy ---")
-    for dish, price in ulam_pinoy.items():
-        print(f"{dish}: ₱{price}")
-    print("=============================================================")
+def save_order_to_file(all_orders):
+    try:
+        for customer_number, (order, total_cost) in enumerate(all_orders, start=1):
+            filename = f"customer_order_{customer_number}.txt"
+            with open(filename, 'w', encoding='utf-8') as file:
+                file.write(f"==================== Customer {customer_number} Order ====================\n")
+                for category, items in order.items():
+                    if items:
+                        file.write(f"\n--- {category.capitalize()} ---\n")
+                        for item, quantity, price in items:
+                            file.write(f"{item} x{quantity} = ₱{price * quantity}\n")
+                file.write("------------------------------------------------------\n")
+                file.write(f"Total Amount: ₱{total_cost}\n")
+                file.write("=======================================================\n")
+            print(f"Order saved in {filename}")
+    except Exception as e:
+        print(f"Error saving order: {e}")
 
-def display_desserts(desserts):
-    print("\n--- Desserts ---")
-    for dessert, price in desserts.items():
-        print(f"{dessert}: ₱{price}")
-    print("=============================================================")
+def print_receipt(all_orders):
+    customer_number = int(input("\nEnter the customer number to print the receipt: "))
+    if 1 <= customer_number <= len(all_orders):
+        order, total_cost = all_orders[customer_number - 1]
+        print(f"\nCustomer {customer_number} Receipt:")
+        for category, items in order.items():
+            if items:
+                print(f"\n--- {category.capitalize()} ---")
+                for item, quantity, price in items:
+                    print(f"{item} x{quantity} = ₱{price * quantity}")
+        print("------------------------------------------------------")
+        print(f"Total Amount: ₱{total_cost}")
+        print("=======================================================")
+    else:
+        print(f"No orders found for Customer {customer_number}.")
 
-def display_drinks(drinks):
-    print("\n--- Drinks ---")
-    for drink, price in drinks.items():
-        print(f"{drink}: ₱{price}")
-    print("=============================================================")
+def search_customer(all_orders, customer_number):
+    if 1 <= customer_number <= len(all_orders):
+        print(f"\nCustomer {customer_number}'s Order:")
+        print_receipt(all_orders)
+    else:
+        print(f"No order found for Customer {customer_number}.")
 
-def take_order(ulam_pinoy, desserts, drinks):
-    order = {'ulam_pinoy': [], 'desserts': [], 'drinks': []}
+def delete_item(all_orders):
+    customer_number = int(input("\nEnter the customer number whose order you'd like to delete an item from: "))
+    if 1 <= customer_number <= len(all_orders):
+        order, total_cost = all_orders[customer_number - 1] 
+        category = input("Enter the category to delete from (ulam_pinoy, desserts, drinks): ").lower()
+        if category in order:
+            print(f"\nItems in {category} category:")
+            for i, (item, quantity, price) in enumerate(order[category]):
+                print(f"{i + 1}. {item} x{quantity} = ₱{price * quantity}")
+            item_index = int(input(f"Enter the number of the {category} item to delete: ")) - 1
+            if 0 <= item_index < len(order[category]):
+                item_to_delete = order[category][item_index][0]
+                
+                del order[category][item_index]
+                print(f"{item_to_delete} has been removed from Customer {customer_number}'s {category} order.")
+                
+                
+                new_total_cost = sum(price * quantity for cat_items in order.values() for item, quantity, price in cat_items)
+                all_orders[customer_number - 1] = (order, new_total_cost)  
+            else:
+                print("Invalid item selection.")
+        else:
+            print(f"No items found in the {category} category.")
+    else:
+        print(f"Customer {customer_number} does not exist.")
+
+def take_order(menu, category_name):
+    order = []
     total_cost = 0
 
-   
-    while True:
-        food_item = input("\nEnter the name of the ulam pinoy you'd like to order (or type 'done' to finish): ").title()
-
-        if food_item.lower() == 'done':
-            break
-        
-        if food_item in ulam_pinoy:
-            quantity = int(input(f"How many {food_item} would you like to order? "))
-            total_cost += ulam_pinoy[food_item] * quantity
-            order['ulam_pinoy'].append((food_item, quantity, ulam_pinoy[food_item]))
-        else:
-            print("Sorry, we don't have that ulam pinoy on the menu. Please choose again.")
-    
-   
-    display_desserts(desserts)
+    print(f"\n--- {category_name.capitalize()} ---")
+    for dish, price in menu.items():
+        print(f"{dish}: ₱{price}")
     
     while True:
-        food_item = input("\nEnter the name of the dessert you'd like to order (or type 'done' to finish): ").title()
-
+        food_item = input(f"\nEnter the name of the {category_name} you'd like to order (or type 'done' to finish): ").title()
         if food_item.lower() == 'done':
             break
-        
-        if food_item in desserts:
+        if food_item in menu:
             quantity = int(input(f"How many {food_item} would you like to order? "))
-            total_cost += desserts[food_item] * quantity
-            order['desserts'].append((food_item, quantity, desserts[food_item]))
+            total_cost += menu[food_item] * quantity
+            order.append((food_item, quantity, menu[food_item]))
         else:
-            print("Sorry, we don't have that dessert on the menu. Please choose again.")
-    
-   
-    display_drinks(drinks)
-
-    while True:
-        food_item = input("\nEnter the name of the drink you'd like to order (or type 'done' to finish): ").title()
-
-        if food_item.lower() == 'done':
-            break
-        
-        if food_item in drinks:
-            quantity = int(input(f"How many {food_item} would you like to order? "))
-            total_cost += drinks[food_item] * quantity
-            order['drinks'].append((food_item, quantity, drinks[food_item]))
-        else:
-            print("Sorry, we don't have that drink on the menu. Please choose again.")
+            print(f"Sorry, we don't have that {category_name} on the menu. Please choose again.")
     
     return order, total_cost
 
-def print_receipt(order, total_cost):
-    print("\n==================== Order Receipt ====================")
-    
-    if order['ulam_pinoy']:
-        print("\n--- Ulam Pinoy ---")
-        for item, quantity, price in order['ulam_pinoy']:
-            print(f"{item} x{quantity} = ₱{price * quantity}")
-    
-    if order['desserts']:
-        print("\n--- Desserts ---")
-        for item, quantity, price in order['desserts']:
-            print(f"{item} x{quantity} = ₱{price * quantity}")
-    
-    if order['drinks']:
-        print("\n--- Drinks ---")
-        for item, quantity, price in order['drinks']:
-            print(f"{item} x{quantity} = ₱{price * quantity}")
-    
-    print("------------------------------------------------------")
-    print(f"Total Amount: ₱{total_cost}")
-    print("=======================================================")
-
 def main():
     ulam_pinoy = {
-        "Adobo": 150,
-        "Sinigang na Baboy": 180,
-        "Lechon Kawali": 220,
-        "Pancit Canton": 100,
-        "Lumpiang Shanghai": 120,
-        "Kare-Kare": 250,
-        "Bicol Express": 190,
-        "Laing": 140
+        "Adobo": 150, "Lechon Kawali": 220, "Pancit Canton": 100, "Lumpiang Shanghai": 120,
+        "Kare-Kare": 250, "Bicol Express": 190, "Laing": 140
     }
 
     desserts = {
-        "Leche Flan": 60,
-        "Bibingka": 70,
-        "Turon": 50,
-        "Mango and Cream Cheese Turon": 80,
-        "Halayang Ube": 90,
-        "Pichi-Pichi": 60,
-        "Cassava Cake with Custard Topping": 100,
-        "Kalamay Gabi": 70,
-        "Halo-Halo": 150
+        "Leche Flan": 60, "Bibingka": 70, "Turon": 50,
+        "Halayang Ube": 90, "Pichi-Pichi": 60, "Cassava Cake": 60, 
+        "Kalamay Gabi": 70, "Halo-Halo": 150
     }
 
     drinks = {
-        "Sago't Gulaman": 40,
-        "Coconut Juice": 30,
-        "Calamansi Juice": 40,
-        "Melon Juice": 50,
-        "Buko Pandan": 50,
-        "Buko Shake": 60,
+        "Calamansi Juice": 40, "Melon Juice": 50, "Buko Pandan": 50, "Buko Shake": 60, 
         "Mango Shake": 70
     }
 
@@ -130,29 +108,41 @@ def main():
     print("        Experience the best of Filipino cuisine!            ")
     print("=============================================================")
 
-    order = {}
-    total_cost = 0
-    more_items = True
+    all_orders = []
+    customer_count = 1
+    while True:
+        print(f"\nCustomer {customer_count}:")
+        ulam_order, ulam_total_cost = take_order(ulam_pinoy, "ulam pinoy")
+        dessert_order, dessert_total_cost = take_order(desserts, "dessert")
+        drink_order, drink_total_cost = take_order(drinks, "drink")
 
-    while more_items:
-        display_ulam_pinoy(ulam_pinoy)  
-        new_order, new_cost = take_order(ulam_pinoy, desserts, drinks)
+        order = {
+            'ulam_pinoy': ulam_order,
+            'desserts': dessert_order,
+            'drinks': drink_order
+        }
+        total_cost = ulam_total_cost + dessert_total_cost + drink_total_cost
 
+        all_orders.append((order, total_cost))
+        save_order_to_file(all_orders)  
 
-        for category in new_order:
-            if category not in order:
-                order[category] = []
-            order[category].extend(new_order[category])
         
-        total_cost += new_cost
-
-      
-        more_items_input = input("\nWould you like to add more items to your order? (yes/no): ").lower()
-        if more_items_input != 'yes':
-            more_items = False
-
-   
-    print_receipt(order, total_cost)
+        while True:
+            action = input("\n[S]earch, [D]elete an item, [P]rint a receipt, [V]iew all orders, [N]ext customer? ").lower()
+            if action == 's':
+                customer_number = int(input("Enter the customer number to search: "))
+                search_customer(all_orders, customer_number)
+            elif action == 'd':
+                delete_item(all_orders)
+            elif action == 'p':
+                print_receipt(all_orders) 
+            elif action == 'v':
+                print_receipt(all_orders)  
+            elif action == 'n':
+                customer_count += 1
+                break
+            else:
+                print("Invalid option. Please choose again.")
 
 if __name__ == "__main__":
     main()
