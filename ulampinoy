@@ -39,6 +39,36 @@ def search_customer(all_orders, customer_number):
     else:
         print(f"No order found for Customer {customer_number}.")
 
+def update_order(all_orders):
+    customer_number = int(input("\nEnter the customer number whose order you'd like to update: "))
+    if 1 <= customer_number <= len(all_orders):
+        order, total_cost = all_orders[customer_number - 1]
+        print(f"\nCustomer {customer_number}'s Current Order:")
+        print_receipt([all_orders[customer_number - 1]])
+
+        category = input("Enter the category to update (ulam_pinoy, desserts, drinks): ").lower()
+        if category in order:
+            print(f"\nItems in {category} category:")
+            for i, (item, quantity, price) in enumerate(order[category]):
+                print(f"{i + 1}. {item} x{quantity} = ₱{price * quantity}")
+            
+            item_index = int(input(f"Enter the number of the {category} item to update: ")) - 1
+            if 0 <= item_index < len(order[category]):
+                item_to_update = order[category][item_index][0]
+                new_quantity = int(input(f"Enter the new quantity for {item_to_update}: "))
+                order[category][item_index] = (item_to_update, new_quantity, order[category][item_index][2])
+
+                # Recalculate total cost
+                new_total_cost = sum(price * quantity for cat_items in order.values() for item, quantity, price in cat_items)
+                all_orders[customer_number - 1] = (order, new_total_cost)
+                print(f"Order updated. New total: ₱{new_total_cost}")
+            else:
+                print("Invalid item selection.")
+        else:
+            print(f"No items found in the {category} category.")
+    else:
+        print(f"Customer {customer_number} does not exist.")
+
 def delete_item(all_orders):
     customer_number = int(input("\nEnter the customer number whose order you'd like to delete an item from: "))
     if 1 <= customer_number <= len(all_orders):
@@ -55,7 +85,7 @@ def delete_item(all_orders):
                 del order[category][item_index]
                 print(f"{item_to_delete} has been removed from Customer {customer_number}'s {category} order.")
                 
-                
+                # Recalculate total cost
                 new_total_cost = sum(price * quantity for cat_items in order.values() for item, quantity, price in cat_items)
                 all_orders[customer_number - 1] = (order, new_total_cost)  
             else:
@@ -128,7 +158,7 @@ def main():
 
         
         while True:
-            action = input("\n[S]earch, [D]elete an item, [P]rint a receipt, [V]iew all orders, [N]ext customer? ").lower()
+            action = input("\n[S]earch, [D]elete an item, [P]rint a receipt, [U]pdate an order, [N]ext customer? ").lower()
             if action == 's':
                 customer_number = int(input("Enter the customer number to search: "))
                 search_customer(all_orders, customer_number)
@@ -136,8 +166,8 @@ def main():
                 delete_item(all_orders)
             elif action == 'p':
                 print_receipt(all_orders) 
-            elif action == 'v':
-                print_receipt(all_orders)  
+            elif action == 'u':
+                update_order(all_orders)  # Update order option
             elif action == 'n':
                 customer_count += 1
                 break
