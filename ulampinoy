@@ -99,15 +99,37 @@ def take_order(menu, category_name):
     order = []
     total_cost = 0
 
-    print(f"\n--- {category_name.capitalize()} ---")
-    for dish, price in menu.items():
-        print(f"{dish}: ₱{price}")
-    
     while True:
-        food_item = input(f"\nEnter the name of the {category_name} you'd like to order (or type 'done' to finish): ").title()
+        # Display the menu each time before asking for input
+        print(f"\n--- {category_name.capitalize()} ---")
+        for dish, price in menu.items():
+            print(f"{dish}: ₱{price}")
+        
+        # Prompt for order or cancel
+        food_item = input(f"\nEnter the name of the {category_name} you'd like to order (or type 'done' to finish, 'cancel' to remove an item): ").title()
+
         if food_item.lower() == 'done':
+            # End order entry
             break
-        if food_item in menu:
+        elif food_item.lower() == 'cancel':
+            if order:
+                print("\nYour current order:")
+                for i, (item, quantity, price) in enumerate(order, start=1):
+                    print(f"{i}. {item} x{quantity} = ₱{price * quantity}")
+                try:
+                    item_to_cancel = int(input(f"Enter the number of the item to cancel (1-{len(order)}): ")) - 1
+                    if 0 <= item_to_cancel < len(order):
+                        canceled_item = order[item_to_cancel]
+                        order.pop(item_to_cancel)
+                        total_cost -= canceled_item[1] * canceled_item[2]
+                        print(f"{canceled_item[0]} has been removed from your order.")
+                    else:
+                        print("Invalid item number. Please try again.")
+                except ValueError:
+                    print("Please enter a valid number.")
+            else:
+                print("Your order is empty. Nothing to cancel.")
+        elif food_item in menu:
             quantity = int(input(f"How many {food_item} would you like to order? "))
             total_cost += menu[food_item] * quantity
             order.append((food_item, quantity, menu[food_item]))
@@ -115,6 +137,29 @@ def take_order(menu, category_name):
             print(f"Sorry, we don't have that {category_name} on the menu. Please choose again.")
     
     return order, total_cost
+
+def add_order_to_customer(all_orders, customer_number, menu_dict):
+    """Add more items to an existing customer's order."""
+    if 1 <= customer_number <= len(all_orders):
+        order, total_cost = all_orders[customer_number - 1]
+        print(f"\nAdding more items to Customer {customer_number}'s existing order.")
+        
+        while True:
+            category = input(f"Which category would you like to add more items to? (ulam_pinoy, desserts, drinks, or 'done' to finish): ").lower()
+            if category == 'done':
+                break
+            if category in menu_dict:
+                category_order, category_cost = take_order(menu_dict[category], category)
+                order[category] += category_order
+                total_cost += category_cost
+            else:
+                print("Invalid category. Please choose from 'ulam_pinoy', 'desserts', 'drinks'.")
+        
+        # Recalculate the total cost
+        all_orders[customer_number - 1] = (order, total_cost)
+        print(f"Customer {customer_number}'s order updated with new items. Total now: ₱{total_cost}")
+    else:
+        print(f"No customer found with number {customer_number}.")
 
 def main():
     ulam_pinoy = {
@@ -131,6 +176,12 @@ def main():
     drinks = {
         "Calamansi Juice": 40, "Melon Juice": 50, "Buko Pandan": 50, "Buko Shake": 60, 
         "Mango Shake": 70
+    }
+
+    menu_dict = {
+        'ulam_pinoy': ulam_pinoy,
+        'desserts': desserts,
+        'drinks': drinks
     }
 
     print("=============================================================")
@@ -158,7 +209,7 @@ def main():
 
         
         while True:
-            action = input("\n[S]earch, [D]elete an item, [P]rint a receipt, [U]pdate an order, [N]ext customer? ").lower()
+            action = input("\n[S]earch, [D]elete an item, [P]rint a receipt, [U]pdate an order, [A]dd more items, [N]ext customer? ").lower()
             if action == 's':
                 customer_number = int(input("Enter the customer number to search: "))
                 search_customer(all_orders, customer_number)
@@ -168,6 +219,9 @@ def main():
                 print_receipt(all_orders) 
             elif action == 'u':
                 update_order(all_orders)  # Update order option
+            elif action == 'a':
+                customer_number = int(input("Enter the customer number to add more items: "))
+                add_order_to_customer(all_orders, customer_number, menu_dict)
             elif action == 'n':
                 customer_count += 1
                 break
